@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book an Orthopaedic Consultation | OrthoNow</title>
+<meta name="description" content="Get an expert orthopaedic opinion on your knee or back pain. 9 clinics across Bengaluru. Book a consultation in under a minute.">
+
+<!--
+  PERFORMANCE NOTES FOR REVIEWER (also see Loom walkthrough):
+  - Zero external requests: no web fonts, no image files, no CSS/JS libraries.
+    System font stack + inline SVG only. This is the single biggest lever for
+    hitting 90+ Mobile PageSpeed — most points get lost to font/image network
+    round trips and render-blocking third-party scripts, not to "unoptimized code".
+  - All CSS is inlined in <head> (no separate stylesheet request = no render block).
+  - The one inline SVG (signature graphic) is hand-written path data, no <img>,
+    so there's no LCP image to wait on and no CLS risk from late-loading images.
+  - JS is deferred to the end of <body> and does no work until user interaction
+    (form submit) — nothing runs on load that could block the main thread.
+-->
+
+<style>
+  /* ============================================================
+     1. Design tokens
+     ============================================================ */
+  :root {
+    --color-ink: #16302B;       /* deep clinical teal — primary text/brand */
+    --color-ink-soft: #3F5650;  /* secondary text on paper */
+    --color-paper: #F6F4EF;     /* warm off-white background */
+    --color-card: #FFFFFF;
+    --color-accent: #D2542A;    /* burnt orange — CTA / decisive action */
+    --color-accent-dark: #B4431F;
+    --color-line: #DCD6C8;      /* hairline rule */
+    --color-trust: #6E8079;     /* muted sage — supporting/meta text */
+
+    --font-display: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-body: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Courier New", monospace;
+
+    --radius: 10px;
+    --max-w: 1080px;
+  }
+
+  /* ============================================================
+     2. Reset & base element styles
+     ============================================================ */
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  img, svg {
+    max-width: 100%;
+    display: block;
+  }
+  a {
+    color: inherit;
+  }
+  button {
+    font-family: inherit;
+  }
+
+  /* ============================================================
+     3. Layout utility
+     ============================================================ */
+  .wrap {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ============================================================
+     4. Top bar
+     ============================================================ */
+  .topbar {
+    border-bottom: 1px solid var(--color-line);
+    padding: 10px 0;
+  }
+  .topbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--color-trust);
+  }
+  .topbar__brand {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  /* ============================================================
+     5. Hero section
+     Mobile-first: single column by default, becomes a two-column
+     grid at the desktop breakpoint (see section 12).
+     ============================================================ */
+  .hero {
+    padding: 40px 0 32px;
+  }
+  .hero__grid {
+    display: block;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent-dark);
+    background: rgba(210, 84, 42, 0.1);
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 6vw, 46px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+    margin: 0 0 14px;
+    max-width: 14ch;
+  }
+  .sub {
+    font-size: clamp(16px, 2.4vw, 18px);
+    color: var(--color-ink-soft);
+    max-width: 46ch;
+    margin: 0 0 28px;
+  }
+
+  /* ============================================================
+     6. Signature element: desk-to-diagnosis journey strip
+     Mobile-first: steps stack vertically (icon + text in a row).
+     Desktop enhancement lays steps out horizontally with arrows
+     between them — see section 12.
+     ============================================================ */
+  .journey {
+    padding: 6px 0 40px;
+  }
+  .journey__title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-trust);
+    margin: 0 0 20px;
+  }
+  .journey__row {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .journey__step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+  }
+  .journey__icon {
+    width: 46px;
+    height: 46px;
+    margin: 0;
+    flex: 0 0 auto;
+    color: var(--color-ink);
+  }
+  .journey__label {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .journey__desc {
+    font-size: 12px;
+    color: var(--color-trust);
+    margin-top: 2px;
+  }
+  .journey__arrow {
+    display: none;
+    align-self: center;
+    color: var(--color-line);
+    font-size: 20px;
+    padding: 0 2px;
+  }
+
+  /* ============================================================
+     7. Doctor credential block
+     ============================================================ */
+  .credential {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+  .credential__badge {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .credential p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-ink-soft);
+  }
+  .credential strong {
+    color: var(--color-ink);
+  }
+
+  /* ============================================================
+     8. Booking form card
+     ============================================================ */
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 1px 2px rgba(22, 48, 43, 0.04);
+  }
+  .card__title {
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0 0 4px;
+  }
+  .card__hint {
+    font-size: 13px;
+    color: var(--color-trust);
+    margin: 0 0 18px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 13px 14px;
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+    border: 1.5px solid var(--color-line);
+    border-radius: 8px;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .field input:focus {
+    border-color: var(--color-accent);
+  }
+  .field__error {
+    display: none;
+    font-size: 12px;
+    color: var(--color-accent-dark);
+    margin-top: 6px;
+  }
+  .field--invalid input {
+    border-color: var(--color-accent-dark);
+  }
+  .field--invalid .field__error {
+    display: block;
+  }
+
+  .cta {
+    width: 100%;
+    padding: 15px 18px;
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .cta:hover {
+    background: var(--color-accent-dark);
+  }
+  .cta:active {
+    transform: scale(0.99);
+  }
+  .cta:focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  .form__meta {
+    font-size: 12px;
+    color: var(--color-trust);
+    text-align: center;
+    margin: 12px 0 0;
+  }
+
+  /* ============================================================
+     9. Thank-you state
+     .form--hidden / .thankyou--visible are toggled by JS on submit
+     (see <script> at the end of <body>) — no inline styles are
+     set from JS, keeping all presentation here in CSS.
+     ============================================================ */
+  .form--hidden {
+    display: none;
+  }
+  .thankyou {
+    display: none;
+    text-align: center;
+    padding: 10px 4px;
+  }
+  .thankyou--visible {
+    display: block;
+  }
+  .thankyou__icon {
+    margin: 0 auto 14px;
+  }
+  .thankyou h3 {
+    font-size: 19px;
+    margin: 0 0 8px;
+  }
+  .thankyou p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-ink-soft);
+  }
+
+  /* ============================================================
+     10. Trust strip
+     ============================================================ */
+  .trust {
+    border-top: 1px solid var(--color-line);
+    border-bottom: 1px solid var(--color-line);
+    padding: 22px 0;
+    margin: 36px 0;
+  }
+  .trust__row {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  .trust__item {
+    flex: 1 1 140px;
+  }
+  .trust__num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+  }
+  .trust__label {
+    font-size: 12.5px;
+    color: var(--color-trust);
+    margin-top: 2px;
+  }
+
+  /* ============================================================
+     11. Footer
+     ============================================================ */
+  footer {
+    border-top: 1px solid var(--color-line);
+    padding: 20px 0 40px;
+    font-size: 12px;
+    color: var(--color-trust);
+  }
+
+  /* ============================================================
+     12. Responsive — mobile-first
+     Base rules above already target mobile. This single breakpoint
+     enhances the layout for wider screens. Kept as one rule block
+     (not scattered min-width/max-width pairs) so no two queries
+     ever fight over the same property.
+     ============================================================ */
+  @media (min-width: 760px) {
+    .hero__grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .journey__row {
+      flex-direction: row;
+      align-items: stretch;
+      gap: 4px;
+    }
+    .journey__step {
+      flex: 1;
+      flex-direction: column;
+      text-align: center;
+      padding: 0 8px;
+    }
+    .journey__icon {
+      margin: 0 auto 10px;
+    }
+    .journey__arrow {
+      display: block;
+    }
+  }
+
+  /* ============================================================
+     13. Accessibility — reduced motion
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap topbar__inner">
+    <span class="topbar__brand">OrthoNow</span>
+    <span>9 CLINICS · BENGALURU · HYDERABAD · CHENNAI</span>
+  </div>
+</div>
+
+<main class="wrap hero">
+  <div class="hero__grid">
+    <div>
+      <span class="eyebrow">Same-week appointments</span>
+      <h1>Get an expert opinion on your knee or back pain — before it slows you down more.</h1>
+      <p class="sub">
+        If sitting through back-to-back meetings is starting to hurt, don't wait it out.
+        Book a consultation with an orthopaedic specialist at your nearest OrthoNow clinic
+        in Bengaluru — most patients are seen within the week.
+      </p>
+
+      <!-- Signature element: desk-to-diagnosis journey -->
+      <div class="journey">
+        <p class="journey__title">Why professionals come to us</p>
+        <div class="journey__row">
+          <div class="journey__step">
+            <svg class="journey__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="8" y="30" width="32" height="4" rx="1" fill="currentColor"/>
+              <circle cx="24" cy="14" r="6" fill="currentColor"/>
+              <path d="M14 30c0-8 4-13 10-13s10 5 10 13" stroke="currentColor" stroke-width="3" fill="none"/>
+            </svg>
+            <div>
+              <div class="journey__label">Long desk hours</div>
+              <div class="journey__desc">8+ hrs sitting, daily</div>
+            </div>
+          </div>
+          <div class="journey__arrow">→</div>
+          <div class="journey__step">
+            <svg class="journey__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24 6v14M24 20l-6 22M24 20l6 22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="24" cy="27" r="4.5" fill="none" stroke="var(--color-accent)" stroke-width="3"/>
+            </svg>
+            <div>
+              <div class="journey__label">Knee / back pain</div>
+              <div class="journey__desc">Dismissed as "just posture"</div>
+            </div>
+          </div>
+          <div class="journey__arrow">→</div>
+          <div class="journey__step">
+            <svg class="journey__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M14 24l7 7 15-15" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="24" cy="24" r="19" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            <div>
+              <div class="journey__label">Expert diagnosis</div>
+              <div class="journey__desc">Real answer, this week</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="credential">
+        <div class="credential__badge">MD</div>
+        <p>
+          <strong>Consultations led by MBBS/MS orthopaedic specialists</strong>, not general
+          physicians — every OrthoNow clinic is staffed by a qualified orthopaedic doctor,
+          not a referral desk.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div id="form-state">
+          <p class="card__title">Book your consultation</p>
+          <p class="card__hint">Takes under a minute. A clinic coordinator will call to confirm your slot.</p>
+
+          <form id="consult-form" novalidate>
+            <div class="field" id="field-name">
+              <label for="name">Full name</label>
+              <input type="text" id="name" name="name" autocomplete="name" placeholder="e.g. Priya Menon">
+              <p class="field__error">Please enter your name.</p>
+            </div>
+
+            <div class="field" id="field-phone">
+              <label for="phone">Phone number</label>
+              <input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="numeric" placeholder="10-digit mobile number">
+              <p class="field__error">Please enter a valid 10-digit mobile number.</p>
+            </div>
+
+            <button type="submit" class="cta">Book my consultation</button>
+            <p class="form__meta">No cost to book. We'll confirm your slot by phone.</p>
+          </form>
+        </div>
+
+        <div id="thankyou" class="thankyou">
+          <svg class="thankyou__icon" width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="26" cy="26" r="25" stroke="#16302B" stroke-width="2"/>
+            <path d="M16 27l7 7 14-14" stroke="#D2542A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <h3>You're on the list.</h3>
+          <p>A clinic coordinator will call you shortly to confirm your appointment time and location.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="wrap trust">
+  <div class="trust__row">
+    <div class="trust__item">
+      <div class="trust__num">9</div>
+      <div class="trust__label">Clinics across 3 cities</div>
+    </div>
+    <div class="trust__item">
+      <div class="trust__num">15+ yrs</div>
+      <div class="trust__label">Avg. specialist experience</div>
+    </div>
+    <div class="trust__item">
+      <div class="trust__num">4.7★</div>
+      <div class="trust__label">Average patient rating</div>
+    </div>
+    <div class="trust__item">
+      <div class="trust__num">&lt; 1 wk</div>
+      <div class="trust__label">Typical wait for first slot</div>
+    </div>
+  </div>
+</div>
+
+<footer class="wrap">
+  OrthoNow — Orthopaedic care across Bengaluru, Hyderabad and Chennai. This page is part of a
+  Namoza-managed campaign.
+</footer>
+
+<script>
+  (function () {
+    'use strict';
+
+    window.dataLayer = window.dataLayer || [];
+
+    var form = document.getElementById('consult-form');
+    var formState = document.getElementById('form-state');
+    var thankyou = document.getElementById('thankyou');
+
+    var nameField = document.getElementById('name');
+    var phoneField = document.getElementById('phone');
+    var nameWrap = document.getElementById('field-name');
+    var phoneWrap = document.getElementById('field-phone');
+
+    function isValidPhone(value) {
+      // Simple 10-digit Indian mobile check, allows leading +91 or 0
+      var digits = value.replace(/\D/g, '');
+      digits = digits.replace(/^91/, '').replace(/^0/, '');
+      return /^[6-9]\d{9}$/.test(digits);
+    }
+
+    function setInvalid(wrapEl, invalid) {
+      wrapEl.classList.toggle('field--invalid', invalid);
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var nameVal = nameField.value.trim();
+      var phoneVal = phoneField.value.trim();
+
+      var nameOk = nameVal.length > 1;
+      var phoneOk = isValidPhone(phoneVal);
+
+      setInvalid(nameWrap, !nameOk);
+      setInvalid(phoneWrap, !phoneOk);
+
+      if (!nameOk || !phoneOk) {
+        return; // do not fire dataLayer event or show thank-you on invalid submit
+      }
+
+      // Fires only on a genuinely valid submit — this is the event GTM listens
+      // for via a Custom Event trigger (see Task 1 schema: consultation_form_submitted
+      // feeds the Google Ads "consultation_form_submitted" conversion action).
+      window.dataLayer.push({
+        event: 'consultation_form_submitted',
+        form_location: 'hero_booking_card',
+        page_path: window.location.pathname,
+        campaign_name: 'orthopaedic_opinion_bengaluru'
+      });
+
+      // Swap to thank-you state without a page reload. Toggling classes
+      // here (not setting inline styles) keeps all presentation in the
+      // CSS, where .form--hidden and .thankyou--visible are defined.
+      formState.classList.add('form--hidden');
+      thankyou.classList.add('thankyou--visible');
+    });
+
+    // Clear the invalid state as the user corrects a field, so errors don't
+    // sit there stale after they've fixed the input.
+    nameField.addEventListener('input', function () {
+      if (nameField.value.trim().length > 1) setInvalid(nameWrap, false);
+    });
+    phoneField.addEventListener('input', function () {
+      if (isValidPhone(phoneField.value.trim())) setInvalid(phoneWrap, false);
+    });
+  })();
+</script>
+
+</body>
+</html>
