@@ -43,8 +43,12 @@ add it after deploying to GitHub Pages, per the step above, before final submiss
 - **Form is above the fold**, not buried after marketing copy — this is a bottom-
   funnel campaign landing page (branded "Book a Consultation"), so the visitor
   already has intent; the form shouldn't make them scroll to act.
-- **Only 2 fields** (name + phone) per the brief — every extra field is a point of
-  drop-off on a healthcare form where trust is already a hurdle.
+- **3 fields (name, phone, clinic)** — the brief asked for a 2-field minimal form,
+  but Task 3's HubSpot integration expects `clinic_preference` on every contact
+  record, and there's no reliable way to infer that server-side. A native
+  `<select>` with clinics grouped by city (Bengaluru / Hyderabad / Chennai) adds
+  one tap on mobile, not a new page or extra typing — worth flagging as a
+  deliberate deviation in the Loom rather than a missed requirement.
 - **Trust elements placed after the form, not before it**: clinic count, specialist
   experience, and rating reinforce the decision for people who scroll past without
   converting immediately, rather than delaying the CTA.

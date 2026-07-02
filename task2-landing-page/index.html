@@ -260,10 +260,12 @@
     color: var(--color-ink-soft);
     margin-bottom: 6px;
   }
-  .field input {
+  .field input,
+  .field select {
     width: 100%;
     padding: 13px 14px;
     font-size: 16px; /* prevents iOS auto-zoom on focus */
+    font-family: inherit;
     border: 1.5px solid var(--color-line);
     border-radius: 8px;
     background: var(--color-paper);
@@ -271,7 +273,21 @@
     outline: none;
     transition: border-color 0.15s ease;
   }
-  .field input:focus {
+  .field select {
+    appearance: none;
+    -webkit-appearance: none;
+    /* Inline SVG chevron as a data URI — no external icon file/request */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236E8079' stroke-width='2'%3E%3Cpath d='M5 7l5 5 5-5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+  .field select:invalid {
+    color: var(--color-trust);
+  }
+  .field input:focus,
+  .field select:focus {
     border-color: var(--color-accent);
   }
   .field__error {
@@ -520,6 +536,29 @@
               <p class="field__error">Please enter a valid 10-digit mobile number.</p>
             </div>
 
+            <div class="field" id="field-clinic">
+              <label for="clinic">Preferred clinic</label>
+              <select id="clinic" name="clinic">
+                <option value="" disabled selected>Select your nearest clinic</option>
+                <optgroup label="Bengaluru">
+                  <option value="Indiranagar">Indiranagar</option>
+                  <option value="Koramangala">Koramangala</option>
+                  <option value="Whitefield">Whitefield</option>
+                  <option value="Jayanagar">Jayanagar</option>
+                </optgroup>
+                <optgroup label="Hyderabad">
+                  <option value="Banjara Hills">Banjara Hills</option>
+                  <option value="Gachibowli">Gachibowli</option>
+                  <option value="Kukatpally">Kukatpally</option>
+                </optgroup>
+                <optgroup label="Chennai">
+                  <option value="Anna Nagar">Anna Nagar</option>
+                  <option value="T Nagar">T Nagar</option>
+                </optgroup>
+              </select>
+              <p class="field__error">Please select a clinic.</p>
+            </div>
+
             <button type="submit" class="cta">Book my consultation</button>
             <p class="form__meta">No cost to book. We'll confirm your slot by phone.</p>
           </form>
@@ -576,8 +615,10 @@
 
     var nameField = document.getElementById('name');
     var phoneField = document.getElementById('phone');
+    var clinicField = document.getElementById('clinic');
     var nameWrap = document.getElementById('field-name');
     var phoneWrap = document.getElementById('field-phone');
+    var clinicWrap = document.getElementById('field-clinic');
 
     function isValidPhone(value) {
       // Simple 10-digit Indian mobile check, allows leading +91 or 0
@@ -595,25 +636,31 @@
 
       var nameVal = nameField.value.trim();
       var phoneVal = phoneField.value.trim();
+      var clinicVal = clinicField.value;
 
       var nameOk = nameVal.length > 1;
       var phoneOk = isValidPhone(phoneVal);
+      var clinicOk = clinicVal !== '';
 
       setInvalid(nameWrap, !nameOk);
       setInvalid(phoneWrap, !phoneOk);
+      setInvalid(clinicWrap, !clinicOk);
 
-      if (!nameOk || !phoneOk) {
+      if (!nameOk || !phoneOk || !clinicOk) {
         return; // do not fire dataLayer event or show thank-you on invalid submit
       }
 
       // Fires only on a genuinely valid submit — this is the event GTM listens
       // for via a Custom Event trigger (see Task 1 schema: consultation_form_submitted
       // feeds the Google Ads "consultation_form_submitted" conversion action).
+      // clinic_preference is the field Task 3's HubSpot integration expects on
+      // every new/updated contact — captured here, not guessed downstream.
       window.dataLayer.push({
         event: 'consultation_form_submitted',
         form_location: 'hero_booking_card',
         page_path: window.location.pathname,
-        campaign_name: 'orthopaedic_opinion_bengaluru'
+        campaign_name: 'orthopaedic_opinion_bengaluru',
+        clinic_preference: clinicVal
       });
 
       // Swap to thank-you state without a page reload. Toggling classes
@@ -630,6 +677,9 @@
     });
     phoneField.addEventListener('input', function () {
       if (isValidPhone(phoneField.value.trim())) setInvalid(phoneWrap, false);
+    });
+    clinicField.addEventListener('change', function () {
+      if (clinicField.value !== '') setInvalid(clinicWrap, false);
     });
   })();
 </script>

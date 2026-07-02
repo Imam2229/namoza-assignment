@@ -136,3 +136,33 @@ they're higher-volume and easier to fire. Reasoning:
 later once we have volume, for top-of-funnel bid adjustments, but it shouldn't be the
 primary signal — downloading a guide is a much weaker intent signal than completing a
 booking.
+
+---
+
+## 4. Appendix — dataLayer JSON for every event
+
+The 3 booking-form snippets above are the only ones the brief required, but the full
+set is included here as an implementation reference for the front-end team — see
+[`dataLayer-reference.json`](./dataLayer-reference.json) for the complete file with
+trigger notes.
+
+**Quick scan — who's responsible for each event:**
+
+| Event | Needs a manual `dataLayer.push()`? | Trigger in GTM |
+|---|---|---|
+| `booking_step1_complete` | ✅ Yes — FE dev | Custom Event |
+| `booking_step2_complete` | ✅ Yes — FE dev | Custom Event |
+| `booking_confirmed` | ✅ Yes — FE dev (fires after backend confirms) | Custom Event |
+| `call_now_click` | ❌ No — GTM native | Click Trigger (`tel:` / `data-cta`) |
+| `whatsapp_click` | ❌ No — GTM native | Click Trigger (`wa.me` href) |
+| `patient_guide_form_submit` | ❌ No — GTM native | Form Submission Trigger |
+| `patient_guide_download` | ✅ Yes — FE dev (fires post-gate, not on click) | Custom Event |
+| `clinic_page_view` | ✅ Yes — one page-level push per clinic template | Page View + Custom Event |
+| `blog_scroll_depth` | ❌ No — GTM native | Scroll Depth Trigger |
+| `consultation_form_submitted` | ✅ Yes — already live in `task2-landing-page/index.html` | Custom Event |
+
+The pattern to brief the FE team on: **any interaction GTM can already see natively
+(a click, a real form submit, a scroll threshold) doesn't need a push. Anything that's
+a JS-driven state change with no page load or native DOM event — multi-step forms,
+gated downloads, backend-confirmed actions — needs an explicit push at the exact
+moment that state changes.**
