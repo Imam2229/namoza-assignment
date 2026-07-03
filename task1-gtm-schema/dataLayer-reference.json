@@ -1,0 +1,138 @@
+{
+  "note": "Reference dataLayer payloads for every event in the Task 1 GTM schema. requires_manual_push = true means the front-end dev must call window.dataLayer.push() explicitly (GTM has no native trigger for it). false means GTM's built-in trigger (Click, Form Submission, Scroll Depth) can read the event without a custom push, and the object shown is what GTM auto-generates or what the GTM tag maps from existing page/click variables.",
+
+  "events": [
+    {
+      "event_name": "booking_step1_complete",
+      "requires_manual_push": true,
+      "trigger_type": "Custom Event (GTM listens for this exact event name)",
+      "fires_when": "User completes clinic + specialty selection and clicks Next",
+      "dataLayer_push": {
+        "event": "booking_step1_complete",
+        "step_number": 1,
+        "step_name": "location_specialty_selected",
+        "clinic_location": "{{clinic name}}",
+        "specialty": "{{specialty selected}}"
+      }
+    },
+    {
+      "event_name": "booking_step2_complete",
+      "requires_manual_push": true,
+      "trigger_type": "Custom Event",
+      "fires_when": "User enters contact details and clicks Next (no raw PII pushed)",
+      "dataLayer_push": {
+        "event": "booking_step2_complete",
+        "step_number": 2,
+        "step_name": "contact_details_entered",
+        "clinic_location": "{{clinic name}}",
+        "preferred_date": "{{preferred date}}",
+        "has_valid_phone": true
+      }
+    },
+    {
+      "event_name": "booking_confirmed",
+      "requires_manual_push": true,
+      "trigger_type": "Custom Event",
+      "fires_when": "Backend confirms the booking was actually created (not on button click)",
+      "dataLayer_push": {
+        "event": "booking_confirmed",
+        "step_number": 3,
+        "step_name": "booking_confirmed",
+        "clinic_location": "{{clinic name}}",
+        "specialty": "{{specialty selected}}",
+        "booking_id": "{{backend booking reference}}"
+      }
+    },
+    {
+      "event_name": "call_now_click",
+      "requires_manual_push": false,
+      "trigger_type": "GTM built-in Click Trigger, filtered on href starting with tel: or data-cta=\"call-now\"",
+      "fires_when": "User taps any Call Now button (homepage, clinic pages, landing page)",
+      "dataLayer_push_equivalent": {
+        "event": "call_now_click",
+        "page_location": "{{Page URL}}",
+        "clinic_location": "{{clinic name}}",
+        "click_text": "{{Click Text}}"
+      },
+      "implementation_note": "No manual push needed — GTM's Click variables ({{Click Text}}, {{Click URL}}) populate this directly. clinic_location comes from a page-level dataLayer variable set once on load, not per click."
+    },
+    {
+      "event_name": "whatsapp_click",
+      "requires_manual_push": false,
+      "trigger_type": "GTM built-in Click Trigger, filtered on href containing wa.me",
+      "fires_when": "User taps the floating WhatsApp widget",
+      "dataLayer_push_equivalent": {
+        "event": "whatsapp_click",
+        "page_location": "{{Page URL}}",
+        "widget_state": "floating",
+        "clinic_location": "{{clinic name}}"
+      },
+      "implementation_note": "Same as call_now_click — built-in Click Trigger, no custom push required."
+    },
+    {
+      "event_name": "patient_guide_form_submit",
+      "requires_manual_push": false,
+      "trigger_type": "GTM built-in Form Submission Trigger",
+      "fires_when": "User submits the name + phone gate form for the PDF guide",
+      "dataLayer_push_equivalent": {
+        "event": "patient_guide_form_submit",
+        "form_id": "patient-guide-download-form",
+        "page_location": "{{Page URL}}",
+        "lead_source": "organic_blog"
+      },
+      "implementation_note": "This is a real single-step <form> submit, so GTM's native Form Submission trigger works without any custom code."
+    },
+    {
+      "event_name": "patient_guide_download",
+      "requires_manual_push": true,
+      "trigger_type": "Custom Event",
+      "fires_when": "The PDF link is actually served after the gate form succeeds — not on click, so failed form submissions never get credited as a download",
+      "dataLayer_push": {
+        "event": "patient_guide_download",
+        "file_name": "orthonow-patient-guide.pdf",
+        "form_id": "patient-guide-download-form",
+        "page_location": "{{Page URL}}"
+      }
+    },
+    {
+      "event_name": "clinic_page_view",
+      "requires_manual_push": true,
+      "trigger_type": "GTM Page View trigger (condition: Page Path matches /clinics/*), enriched with a page-level dataLayer object",
+      "fires_when": "Any of the 9 clinic location pages loads",
+      "dataLayer_push": {
+        "event": "clinic_page_view",
+        "clinic_name": "{{clinic name}}",
+        "clinic_city": "{{clinic city}}",
+        "page_location": "{{Page URL}}"
+      },
+      "implementation_note": "One trigger handles all 9 pages — clinic_name/clinic_city are set once as a page-level dataLayer object rendered server-side per page, not 9 separate GTM triggers."
+    },
+    {
+      "event_name": "blog_scroll_depth",
+      "requires_manual_push": false,
+      "trigger_type": "GTM built-in Scroll Depth Trigger (thresholds 25/50/75/90%)",
+      "fires_when": "Reader scrolls past each threshold on a blog article",
+      "dataLayer_push_equivalent": {
+        "event": "gtm.scrollDepth",
+        "percent_scrolled": "{{Scroll Depth Threshold}}",
+        "page_location": "{{Page URL}}",
+        "article_title": "{{article title}}"
+      },
+      "implementation_note": "GTM auto-fires its own gtm.scrollDepth event with built-in variables — no manual dataLayer.push() needed. The GTM tag maps gtm.scrollDepth to a GA4 event named blog_scroll_depth so it reads cleanly in reporting."
+    },
+    {
+      "event_name": "consultation_form_submitted",
+      "requires_manual_push": true,
+      "trigger_type": "Custom Event",
+      "fires_when": "Landing page form (Task 2) passes client-side validation and submits — this is the campaign landing page's own 3-field form, separate from the main site's booking form above",
+      "dataLayer_push": {
+        "event": "consultation_form_submitted",
+        "form_location": "hero_booking_card",
+        "page_path": "/landing/orthopaedic-consultation",
+        "campaign_name": "orthopaedic_opinion_bengaluru",
+        "clinic_preference": "Indiranagar"
+      },
+      "implementation_note": "Matches the live implementation in task2-landing-page/index.html. clinic_preference was added when the form gained a clinic dropdown, so this event now feeds both GA4 and the HubSpot integration in Task 3."
+    }
+  ]
+}
